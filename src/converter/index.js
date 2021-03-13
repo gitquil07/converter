@@ -214,16 +214,6 @@ function Converter(){
                         converterData.map((data, index) => {
                             return (
                                 <div key={index} className={st["item-row"]}>
-                                    {/* <select onChange={e => handleCurrencyChange(e, index)}>
-                                        {
-                                            options.map((currency, idx) => {
-                                                if(currency === data.base){
-                                                    return <option key={idx} selected value={currency}>{currency}</option>
-                                                }
-                                                return <option key={idx} value={currency}>{currency}</option>
-                                            })
-                                        }
-                                    </select> */}
                                   
                                     <ConverterItem 
                                         rateIndex={0}
@@ -237,21 +227,6 @@ function Converter(){
                                     {   
                                         data.rates.map((rate, rateIndex) => {
                                             return (rate[2] === true)?
-                                            // <span key={rateIndex}>
-                                            //     <select onChange={e => handleCurrencyChange(e, index)}>
-                                            //     {
-                                            //         options.map((currency, idx) => {
-                                                    
-                                            //             return (currency === rate[0])? <option key={idx} selected value={currency}>{currency}</option> : <option key={idx} value={currency}>{currency}</option> 
-                                                        
-                                            //         })
-                                            //     }
-                                            //     </select>{" "}{rate[1]}
-                                            //     {
-                                            //         !(rateIndex === 0)? <button onClick={() => removeCurrency(index, rateIndex)}>x</button> : null
-                                            //     }
-                                            //     {"   |   "} 
-                                            // </span> : null
                                             <ConverterItem 
                                                 rateIndex={rateIndex}
                                                 base={rate[0]}
