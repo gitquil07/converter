@@ -1,6 +1,8 @@
 import react, {useState, useEffect} from "react";
+import ConverterItem from "./ConverterItem";
+import st from "./converter.module.css";
 
-function Converter(props){
+function Converter(){
 
     const [loading, setLoading] = useState(true),
           [converterTemplate, setConverterTemplate] = useState(undefined),
@@ -21,6 +23,7 @@ function Converter(props){
     }
 
 
+    // Get new rates on currency change
     function convert(row, currency){
         setLoading(true);
         fetch(`https://api.exchangeratesapi.io/latest?base=${currency}`)
@@ -32,11 +35,19 @@ function Converter(props){
             
             const currencyList = Object.keys(data.rates);
             currencyList.forEach((key, index) => {
-                temporary[row].rates[index] = [
+                if(!temporary[row].rates[index]){
+                    temporary[row].rates.push([
+                        key,
+                        data.rates[key],
+                        rates[rates.length-1][2]
+                    ]);
+                }else{
+                    temporary[row].rates[index] = [
                         key,
                         data.rates[key],
                         rates[index][2]
                     ];
+                }
             })
 
 
@@ -106,53 +117,104 @@ function Converter(props){
         const selectedBase = e.target.value;
 
         convert(row, selectedBase);
-    }    
+    } 
+    
+    
+     // Whenever converterData changes update localStorage data
+    // useEffect will help detect changes
+    useEffect(() => {
+        // Convert data from array to json string in first
+        // case we get not valid data
+        if(converterData.length !== 0){
+
+            const json = JSON.stringify(converterData);
+    
+            localStorage.setItem("converterData", json);
+
+        }
+
+    }, [converterData]);
+
+    // Whenever template changes update localStorage data
+    useEffect(() => {
+        if(converterTemplate !== undefined){
+            const json = JSON.stringify(converterTemplate);
+
+            localStorage.setItem("template", json);
+        }
+    }, [converterTemplate]);
+
 
 
     useEffect(() => {
-        fetch("https://api.exchangeratesapi.io/latest?base=EUR")
-            .then(response => response.json())
-            .then(data => {
+        // Check local storage for convertedData, if exists take this data
+        // if not make request to get data
+        const converterDataJson = localStorage.getItem("converterData"),
+              templateJson = localStorage.getItem("template");
 
-                setOptions([data.base, ...Object.keys(data.rates)]);
-                const currencyList = Object.keys(data.rates),
-                      rates = currencyList.map((key, index) => {
-                          return [
-                              key,
-                              data.rates[key],
-                              (index === 0)? true : false
-                          ]
-                      });
+        // try to Convert result from json string to object
+        let resData = [],
+            resTemplate = [];
+        if(converterDataJson !== null && templateJson !== null){
+            resData = JSON.parse(converterDataJson);
+            resTemplate = JSON.parse(templateJson);
+        }
+        
+        if(resData.length !== 0 && resTemplate.length !== 0){
+            setConverterData(resData);
+            setConverterTemplate(resTemplate);
+            setOptions([resTemplate.base, ...resTemplate.rates.map(rate => rate[0])]);
+            setLoading(false);
+        }else{
 
-                const template = 
-                    {
-                        base: "EUR",
-                        rates: [
-                            ...rates
-                        ]
-                    };
-
-                setConverterTemplate(template);
-                setConverterData([createNewTemplateFrom(template)]);
-            })
-            .catch(error => {
-                setErrMsg("something went wrong");
-            })
-            .finally(() => setLoading(false));
+            fetch("https://api.exchangeratesapi.io/latest?base=EUR")
+                .then(response => response.json())
+                .then(data => {
+    
+                    setOptions([data.base, ...Object.keys(data.rates)]);
+                    const currencyList = Object.keys(data.rates),
+                          rates = currencyList.map((key, index) => {
+                              return [
+                                  key,
+                                  data.rates[key],
+                                  (index === 0)? true : false
+                              ]
+                          });
+    
+                    const template = 
+                        {
+                            base: "EUR",
+                            rates: [
+                                ...rates
+                            ]
+                        };
+    
+                    setConverterTemplate(template);
+                    setConverterData([createNewTemplateFrom(template)]);
+                })
+                .catch(error => {
+                    setErrMsg("something went wrong");
+                })
+                .finally(() => setLoading(false));
+        }
     }, []);
     
     return (
         <>
             {
-                loading? "...loading" : 
+                loading? <div className={st.loading}>loading</div> : 
 
                 (errMsg === "")?
                 <>
+                    <p className={st.bold}>
+                        <span className={st.offset}>From</span>
+                        <span>To</span>
+                    </p>
                     {
                         converterData.map((data, index) => {
                             return (
-                                <div key={index}>
-                                    <select onChange={e => handleCurrencyChange(e, index)}>
+                                <div key={index} className={st["item-row"]}>
+                                    {/* <select onChange={e => handleCurrencyChange(e, index)}>
                                         {
                                             options.map((currency, idx) => {
                                                 if(currency === data.base){
@@ -161,39 +223,57 @@ function Converter(props){
                                                 return <option key={idx} value={currency}>{currency}</option>
                                             })
                                         }
-                                    </select>
-                                    {" "} 1 = 
+                                    </select> */}
+                                  
+                                    <ConverterItem 
+                                        rateIndex={0}
+                                        base={data.base}
+                                        value={1}
+                                        rowIndex={index}
+                                        handleCurrencyChange={handleCurrencyChange}
+                                        options={options}
+                                    />
+                                    <div className={st.equality}></div>
                                     {   
                                         data.rates.map((rate, rateIndex) => {
                                             return (rate[2] === true)?
-                                            <span key={rateIndex}>
-                                                <select defaultValue={rate[0]} onChange={e => handleCurrencyChange(e, index)}>
-                                                {
-                                                    options.map((currency, idx) => {
+                                            // <span key={rateIndex}>
+                                            //     <select onChange={e => handleCurrencyChange(e, index)}>
+                                            //     {
+                                            //         options.map((currency, idx) => {
                                                     
-                                                        return (currency === rate[0])? <option key={idx} selected value={currency}>{currency}</option> : <option key={idx} value={currency}>{currency}</option> 
+                                            //             return (currency === rate[0])? <option key={idx} selected value={currency}>{currency}</option> : <option key={idx} value={currency}>{currency}</option> 
                                                         
-                                                    })
-                                                }
-                                                </select>{" "}{rate[1]}
-                                                {
-                                                    !(rateIndex === 0)? <button onClick={() => removeCurrency(index, rateIndex)}>x</button> : null
-                                                }
-                                                {"   |   "} 
-                                            </span> : null
+                                            //         })
+                                            //     }
+                                            //     </select>{" "}{rate[1]}
+                                            //     {
+                                            //         !(rateIndex === 0)? <button onClick={() => removeCurrency(index, rateIndex)}>x</button> : null
+                                            //     }
+                                            //     {"   |   "} 
+                                            // </span> : null
+                                            <ConverterItem 
+                                                rateIndex={rateIndex}
+                                                base={rate[0]}
+                                                value={rate[1]}
+                                                rowIndex={index}
+                                                handleCurrencyChange={handleCurrencyChange}
+                                                options={options}
+                                                removeCurrency={removeCurrency}
+                                            /> : null
                                         })
                                     }
                                     {
-                                        (data.rates.filter(rate => rate[2] === true).length === data.rates.length)? null : <button onClick={() => addCurrency(index)} id={index}>+</button>
+                                        (data.rates.filter(rate => rate[2] === true).length === data.rates.length)? null : <button className={`${st.btn} ${st.addBtn}`} onClick={() => addCurrency(index)} id={index}></button>
                                     }
                                     {
-                                        !(index === 0)? <button onClick={() => removeRow(index)}>remove row</button> : null
+                                        !(index === 0)? <button className={`${st.btn} ${st.removeRow}`} onClick={() => removeRow(index)}></button> : null
                                     }
                                 </div>
                             )
                         })
                     }
-                    <button onClick={addTemplate}>+</button>    
+                    <button className={`${st.btn} ${st.addBtn}`} onClick={addTemplate}></button>    
                 </> : errMsg
             }
         </>
