@@ -90,7 +90,6 @@ function currencyChange(currency, converterIndex){
         .then(data => {
             const stateBefore = getState();
             const temporary = stateBefore.converterData.slice();
-            console.log("data", data);
             temporary[converterIndex].base = data.base;
             const rates = temporary[converterIndex].rates.slice();
             
