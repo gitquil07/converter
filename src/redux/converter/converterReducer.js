@@ -64,36 +64,7 @@ const converterReducer = (state = initialState, action) => {
                 converterData: addCurrencyTemp
             }
 
-            // const converterIndex = action.payload,
-            //       rates = [...state.converterData[converterIndex].rates],
-            //       ratesLength = rates.length;
-
-            // let i = 0;
-            // while(rates[i][2] !== false && i <= ratesLength){
-            //         i++;
-            // }
-            // rates[i][2] = true;
-
-            // return {
-            //     ...state,
-            //     converterData: {
-            //         ...state.converterData,
-            //         rates: rates
-            //     }
-            // }
-
         case "ADD_CONVERTER":
-
-            // const newTemplate = createNewTemplateFrom(state.converterTemplate),
-            //       temporary = state.converterData.slice();
-
-            // temporary.push(newTemplate);
-
-            // return {
-            //     ...state,
-            //     converterData: temporary
-            // }
-
 
             const newTemplate = createNewTemplateFrom(state.converterTemplate);
 
@@ -116,17 +87,6 @@ const converterReducer = (state = initialState, action) => {
                 ...state,
                 converterData: removeCurrencyTemp
             }
-            // const {converterIndex, currencyIndex} = action.payload,
-            //       rates = state.converterData[converterIndex].rates;
-            //       rates[currencyIndex][2] = false;
-
-            // return {
-            //     ...state,
-            //     converterData:{
-            //         ...state.converterData,
-            //         rates: rates
-            //     }
-            // }
 
         case "REMOVE_CONVERTER":
 

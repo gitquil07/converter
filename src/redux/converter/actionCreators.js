@@ -55,7 +55,6 @@ function setDataFromCache(data){
 }
 
 function addCurrency(converterIndex){
-    // return action
     return {
         type: ADD_CURRENCY,
         payload: converterIndex
@@ -85,7 +84,6 @@ function removeConverter(converterIndex){
 
 function currencyChange(currency, converterIndex){
     return function(dispatch, getState){
-        // setLoading(true);
         dispatch(fetchData());
         fetch(`https://api.exchangeratesapi.io/latest?base=${currency}`)
         .then(response => response.json())
@@ -114,13 +112,10 @@ function currencyChange(currency, converterIndex){
             })
 
             dispatch(updateSuccess(temporary))
-            // setConverterData(temporary);
         })
         .catch(error => {
-            dispatch(updateError("something ent wrong"));
-            // setErrMsg("Something went wrong");
+            dispatch(updateError("something went wrong"));
         })
-        // .finally(() => setLoading(false));
     }
 }
 
@@ -131,7 +126,6 @@ function getInitialData(){
             .then(response => response.json())
             .then(data => {
 
-                // setOptions([data.base, ...Object.keys(data.rates)]);
                 const currencyList = Object.keys(data.rates),
                         rates = currencyList.map((key, index) => {
                             return [
@@ -161,16 +155,11 @@ function getInitialData(){
 
                 dispatch(fetchDataSuccess(payload))
 
-                // setConverterTemplate(template);
-                // setConverterData([createNewTemplateFrom(template)]);
+                
             })
             .catch(error => {
                 dispatch(fetchDataError("something went wrong"));
-                // setErrMsg("something went wrong");
             })
-            // .finally(() => {
-            //     setLoading(false)
-            // });
     }
 }
 
